@@ -56,10 +56,11 @@ class PostsService(PackageService):
             req = ParsedRequest()
         docs = super().get(req, lookup)
         for doc in docs:
-            for assoc in self._get_associations(doc):
-                if assoc.get('residRef'):
-                    item = get_resource_service('archive').find_one(req=None, _id=assoc['residRef'])
-                    assoc['item'] = item
+            validRefs = [assoc for assoc in self._get_associations(doc) if assoc.get('residRef')]
+            if validRefs:
+                first = validRefs[0]
+                item = get_resource_service('archive').find_one(req=None, _id=first['residRef'])
+                first['item'] = item
         return docs
 
     def on_create(self, docs):
@@ -104,8 +105,9 @@ class BlogPostsService(PackageService):
         docs = super().get(req, lookup)
         for doc in docs:
             build_custom_hateoas(self.custom_hateoas, doc, location='posts')
-            for assoc in self._get_associations(doc):
-                if assoc.get('residRef'):
-                    item = get_resource_service('archive').find_one(req=None, _id=assoc['residRef'])
-                    assoc['item'] = item
+            validRefs = [assoc for assoc in self._get_associations(doc) if assoc.get('residRef')]
+            if validRefs:
+                first = validRefs[0]
+                item = get_resource_service('archive').find_one(req=None, _id=first['residRef'])
+                first['item'] = item
         return docs
